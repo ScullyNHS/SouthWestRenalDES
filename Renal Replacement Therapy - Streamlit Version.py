@@ -431,11 +431,11 @@ with st.sidebar.expander("Patient Prevalence", expanded=False):
     )
     g.prevalent_LTx = st.number_input(
         "Prevalent Live Tx", 0, 5000,
-        value=st.session_state.params["prevalent_Tx"]
+        value=st.session_state.params["prevalent_LTx"]
     )
     g.prevalent_CTx = st.number_input(
         "Prevalent Cadaver Tx", 0, 5000,
-        value=st.session_state.params["prevalent_Tx"]
+        value=st.session_state.params["prevalent_CTx"]
     )
     st.session_state.params.update({
         "prevalent_ICHD": g.prevalent_ICHD,
@@ -554,3 +554,4 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
