@@ -368,6 +368,8 @@ class Model:
 # ---------------- STREAMLIT APP ----------------
 st.title("Renal Unit Simulation Model")
 
+st.image("Model_Diagram.png")
+
 # -------------------------------
 # Sidebar with grouped parameters
 # -------------------------------
@@ -554,4 +556,5 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
 
