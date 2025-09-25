@@ -616,7 +616,18 @@ if st.button("Run Simulation"):
     start_time = time.time()
     mean_queue_times = []
     all_queue_monitors = []
-    all_results_list = []
+    #all_results_list = []
+    all_results_list = pd.DataFrame(columns=[
+            'Run Number',
+            'Patient Id', 
+            'Patient Type', 
+            'Entry Age',
+            'Q time station', 
+            'Time in dialysis station',
+            'No of Sessions', 
+            'Exit Age', 
+            'Year'
+        ])
     all_sessions_list = []
 
     for run_number in range(1, num_runs + 1):
@@ -624,7 +635,8 @@ if st.button("Run Simulation"):
         results, sessions, mean_q, q_monitor = model.run()
         mean_queue_times.append(mean_q)
         all_queue_monitors.append(q_monitor)
-        all_results_list.append(results)
+        #all_results_list.append(results)
+        all_results_list = pd.concat([all_results_list,results], ignore_index=True)
         all_sessions_list.append(sessions)
 
     average_mean_q = sum(mean_queue_times) / num_runs
@@ -645,14 +657,20 @@ if st.button("Run Simulation"):
     ax.grid(True)
     st.pyplot(fig)
 
-    volume_tables = []
-    for results in all_results_list:
-        vt = results.groupby(['Year', 'Patient Type']).size().unstack(fill_value=0)
-        volume_tables.append(vt)
+    # volume_tables = []
+    # for results in all_results_list:
+    #     vt = results.groupby(['Year', 'Patient Type']).size().unstack(fill_value=0)
+    #     volume_tables.append(vt)
 
-    avg_volume_table = sum(volume_tables) / len(volume_tables)
-    avg_volume_table = avg_volume_table.round(2)
-    st.write("### Average patient volumes by year and modality")
+    # avg_volume_table = sum(volume_tables) / len(volume_tables)
+    # avg_volume_table = avg_volume_table.round(2)
+    new_patients_filter = all_results_list[all_results_list['No of Sessions']==0]
+    new_patients_df = new_patients_filter.groupby(['Run Number','Year', 'Patient Type']).size().reset_index(name='count')
+
+    # Sum and average
+    avg_volume_table = new_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().unstack(fill_value=0)
+
+    st.write("### Average new patient volumes by year and modality")
     st.dataframe(avg_volume_table)
 
     # Download Excel
@@ -681,5 +699,27 @@ if st.button("Run Simulation"):
         file_name="Renal_session_volumes.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+    ## Exit patients output
+
+    exit_patients_filter = all_results_list[all_results_list['No of Sessions']>0]
+    exit_patients_df = exit_patients_filter.groupby(['Run Number','Year', 'Patient Type']).size().reset_index(name='count')
+
+    # Sum and average
+    avg_exit_table = exit_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().unstack(fill_value=0)
+    st.write("### Average Number of Exits by year")
+    st.dataframe(avg_exit_table)
+
+    # Download Excel
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        avg_exit_table.to_excel(writer, sheet_name="Avg Patients by Year")
+    st.download_button(
+        label="Download results as Excel",
+        data=output.getvalue(),
+        file_name="Renal_exit_volumes.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
