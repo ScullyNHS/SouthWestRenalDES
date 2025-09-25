@@ -617,17 +617,7 @@ if st.button("Run Simulation"):
     mean_queue_times = []
     all_queue_monitors = []
     #all_results_list = []
-    all_results_list = pd.DataFrame(columns=[
-            'Run Number',
-            'Patient Id', 
-            'Patient Type', 
-            'Entry Age',
-            'Q time station', 
-            'Time in dialysis station',
-            'No of Sessions', 
-            'Exit Age', 
-            'Year'
-        ])
+    all_results = []
     all_sessions_list = []
 
     for run_number in range(1, num_runs + 1):
@@ -636,9 +626,10 @@ if st.button("Run Simulation"):
         mean_queue_times.append(mean_q)
         all_queue_monitors.append(q_monitor)
         #all_results_list.append(results)
-        all_results_list = pd.concat([all_results_list,results], ignore_index=True)
+        all_results.append(results)
         all_sessions_list.append(sessions)
 
+    all_results_list = pd.concat(all_results, ignore_index=True)
     average_mean_q = sum(mean_queue_times) / num_runs
     st.write(f"### Average mean queue time over {num_runs} runs: {average_mean_q:.2f} days")
 
@@ -670,7 +661,7 @@ if st.button("Run Simulation"):
     # Sum and average
     avg_volume_table = new_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().unstack(fill_value=0)
 
-    st.write("### Average new patient volumes by year and modality")
+    st.write("### Average New Patient Volumes by Year and Modality")
     st.dataframe(avg_volume_table)
 
     # Download Excel
@@ -686,7 +677,7 @@ if st.button("Run Simulation"):
 
     avg_sessions_table = sum(all_sessions_list) / len(all_sessions_list)
     avg_sessions_table = avg_sessions_table.round(2)  
-    st.write("### Average Number of Sessions by year")
+    st.write("### Average Number of Sessions by Year")
     st.dataframe(avg_sessions_table)
 
     # Download Excel
@@ -707,7 +698,7 @@ if st.button("Run Simulation"):
 
     # Sum and average
     avg_exit_table = exit_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().unstack(fill_value=0)
-    st.write("### Average Number of Exits by year")
+    st.write("### Average Number of Exits by Year")
     st.dataframe(avg_exit_table)
 
     # Download Excel
