@@ -23,6 +23,13 @@ class g:
     prevalent_HHD  = 16
     prevalent_LTx   = 195
     prevalent_CTx   = 391
+
+    proportion_ICHD = 0.428691275
+    proportion_PD = 0.066275168
+    proportion_HHD = 0.013422819
+    proportion_LTx = 0.163590604
+    proportion_CTx = 0.328020134
+
     number_of_stations = 113
 
     # ---------------- Other parameters ----------------
@@ -38,26 +45,43 @@ class g:
 
     # Dialysis duration
     max_ichd_sessions = 1560
+    max_24yr_sessions = 52*3*22
+    max_29yr_sessions = 52*3*15
+    max_34yr_sessions = 52*3*14
+    max_39yr_sessions = 52*3*12
+    max_44yr_sessions = 52*3*10
+    max_49yr_sessions = 52*3*9
+    max_54yr_sessions = 52*3*8
+    max_59yr_sessions = 52*3*7
+    max_64yr_sessions = 52*3*5
+    max_69yr_sessions = 52*3*4
+    max_74yr_sessions = 52*3*3
+    max_79yr_sessions = 52*3*2
+    max_80yr_sessions = 52*3*1
     max_CTx_sessions = 78
     
+    # New patients per year
+
+    new_KRT_patients = 210
+
     # ----------- Growth-driven arrivals ------------
     @staticmethod
     def expected_new_patients(years, modality):
         if modality == "ICHD":
-            base = g.prevalent_ICHD
+            base = g.new_KRT_patients*g.proportion_ICHD
         elif modality == "PD":
-            base = g.prevalent_PD
+            base = g.new_KRT_patients*g.proportion_PD
         elif modality == "HHD":
-            base = g.prevalent_HHD
+            base = g.new_KRT_patients*g.proportion_HHD
         elif modality == "Live Transplant":
-            base = g.prevalent_LTx
+            base = g.new_KRT_patients*g.proportion_LTx
         elif modality == "Cadaver Transplant":
-            base = g.prevalent_CTx
+            base = g.new_KRT_patients*g.proportion_CTx
         else:
             return 0
-        prev = base * ((1 + g.annual_growth_rate) ** (years - 1))
-        curr = base * ((1 + g.annual_growth_rate) ** years)
-        new_patients = curr - prev
+        # prev = base * ((1 + g.annual_growth_rate) ** (years - 1))
+        # curr = base * ((1 + g.annual_growth_rate) ** years)
+        new_patients = base * ((1 + g.annual_growth_rate) ** years)
         if modality == "HHD" and new_patients < 1:
             return 1
         return int(new_patients)
@@ -79,6 +103,7 @@ class Patient:
         self.age = self.entry_age 
         self.q_time_station = 0 
         self.next_eligible_day = 0 
+        self.max_sessions = 0 # Patient defined number of sessions
 
 
 # ---------------- MODEL CLASS ----------------
@@ -111,6 +136,34 @@ class Model:
         for _ in range(g.prevalent_ICHD):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'ICHD')
+            if p.entry_age >= 18 and p.entry_age < 25:
+                p.max_sessions = g.max_24yr_sessions
+            elif p.entry_age >= 25 and p.entry_age < 30:
+                p.max_sessions = g.max_29yr_sessions
+            elif p.entry_age >= 30 and p.entry_age < 35:
+                p.max_sessions = g.max_34yr_sessions
+            elif p.entry_age >= 35 and p.entry_age < 40:
+                p.max_sessions = g.max_39yr_sessions
+            elif p.entry_age >= 40 and p.entry_age < 45:
+                p.max_sessions = g.max_44yr_sessions
+            elif p.entry_age >= 45 and p.entry_age < 50:
+                p.max_sessions = g.max_49yr_sessions
+            elif p.entry_age >= 50 and p.entry_age < 55:
+                p.max_sessions = g.max_54yr_sessions
+            elif p.entry_age >= 55 and p.entry_age < 60:
+                p.max_sessions = g.max_59yr_sessions
+            elif p.entry_age >= 60 and p.entry_age < 65:
+                p.max_sessions = g.max_64yr_sessions
+            elif p.entry_age >= 65 and p.entry_age < 70:
+                p.max_sessions = g.max_69yr_sessions
+            elif p.entry_age >= 70 and p.entry_age < 75:
+                p.max_sessions = g.max_74yr_sessions
+            elif p.entry_age >= 75 and p.entry_age < 80:
+                p.max_sessions = g.max_79yr_sessions
+            elif p.entry_age >= 80:
+                p.max_sessions = g.max_80yr_sessions
+            else:
+                return 0
             self.env.process(self.activity_generator_ICHD(p))
             self.results_df.loc[len(self.results_df)] = {
                 'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
@@ -163,7 +216,35 @@ class Model:
         year = 1 
         while self.env.now < g.sim_duration_days: 
             self.patient_counter += 1 
-            p = Patient(self.patient_counter, 'ICHD') 
+            p = Patient(self.patient_counter, 'ICHD')
+            if p.entry_age >= 18 and p.entry_age < 25:
+                p.max_sessions = g.max_24yr_sessions
+            elif p.entry_age >= 25 and p.entry_age < 30:
+                p.max_sessions = g.max_29yr_sessions
+            elif p.entry_age >= 30 and p.entry_age < 35:
+                p.max_sessions = g.max_34yr_sessions
+            elif p.entry_age >= 35 and p.entry_age < 40:
+                p.max_sessions = g.max_39yr_sessions
+            elif p.entry_age >= 40 and p.entry_age < 45:
+                p.max_sessions = g.max_44yr_sessions
+            elif p.entry_age >= 45 and p.entry_age < 50:
+                p.max_sessions = g.max_49yr_sessions
+            elif p.entry_age >= 50 and p.entry_age < 55:
+                p.max_sessions = g.max_54yr_sessions
+            elif p.entry_age >= 55 and p.entry_age < 60:
+                p.max_sessions = g.max_59yr_sessions
+            elif p.entry_age >= 60 and p.entry_age < 65:
+                p.max_sessions = g.max_64yr_sessions
+            elif p.entry_age >= 65 and p.entry_age < 70:
+                p.max_sessions = g.max_69yr_sessions
+            elif p.entry_age >= 70 and p.entry_age < 75:
+                p.max_sessions = g.max_74yr_sessions
+            elif p.entry_age >= 75 and p.entry_age < 80:
+                p.max_sessions = g.max_79yr_sessions
+            elif p.entry_age >= 80:
+                p.max_sessions = g.max_80yr_sessions
+            else:
+                return 0 
             self.results_df.loc[len(self.results_df)] = {
                 'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions': 0,'Exit Age': p.age,'Year': year
@@ -251,7 +332,7 @@ class Model:
     def activity_generator_ICHD(self, patient):
         total_dialysis_time = 0
         session_count = 0  # Count the number of dialysis sessions
-        while (patient.age < g.max_age) and (session_count < g.max_ichd_sessions): # Patient continues until max age/sessions
+        while (patient.age < g.max_age) and (session_count < patient.max_sessions): # Patient continues until max age/sessions
             if self.env.now < patient.next_eligible_day: #check if patient is eligible for next session
                 yield self.env.timeout(1) # Wait for 1 day
                 patient.age += g.age_increment_per_day # Increment age
@@ -382,6 +463,12 @@ def get_g_defaults():
         "prevalent_HHD": g.prevalent_HHD,
         "prevalent_LTx": g.prevalent_LTx,
         "prevalent_CTx": g.prevalent_CTx,
+        "new_KRT_patients": g.new_KRT_patients,
+        "proportion_ICHD": g.proportion_ICHD,
+        "proportion_PD": g.proportion_PD,
+        "proportion_HHD": g.proportion_HHD,
+        "proportion_LTx": g.proportion_LTx,
+        "proportion_CTx": g.proportion_CTx,
         "number_of_stations": g.number_of_stations,
         "mean_consult_time": g.mean_consult_time,
         "min_age": g.min_age,
@@ -439,12 +526,52 @@ with st.sidebar.expander("Patient Prevalence", expanded=False):
         "Prevalent Cadaver Tx", 0, 5000,
         value=st.session_state.params["prevalent_CTx"]
     )
+    g.new_KRT_patients = st.number_input(
+        "new_KRT_patients", 0, 5000,
+        value=st.session_state.params["new_KRT_patients"]
+    )
+    g.proportion_ICHD = st.number_input(
+        "proportion_ICHD (%)", 
+        min_value=0.0, max_value=1.0,
+        value=st.session_state.params["proportion_ICHD"],
+        step=0.005
+    )
+    g.proportion_ICHD = st.number_input(
+        "proportion_PD (%)", 
+        min_value=0.0, max_value=1.0,
+        value=st.session_state.params["proportion_PD"],
+        step=0.005
+    )
+    g.proportion_ICHD = st.number_input(
+        "proportion_HHD (%)", 
+        min_value=0.0, max_value=1.0,
+        value=st.session_state.params["proportion_HHD"],
+        step=0.005
+    )
+    g.proportion_ICHD = st.number_input(
+        "proportion_LTx (%)", 
+        min_value=0.0, max_value=1.0,
+        value=st.session_state.params["proportion_LTx"],
+        step=0.005
+    )
+    g.proportion_ICHD = st.number_input(
+        "proportion_CTx (%)", 
+        min_value=0.0, max_value=1.0,
+        value=st.session_state.params["proportion_CTx"],
+        step=0.005
+    )
     st.session_state.params.update({
         "prevalent_ICHD": g.prevalent_ICHD,
         "prevalent_PD": g.prevalent_PD,
         "prevalent_HHD": g.prevalent_HHD,
         "prevalent_LTx": g.prevalent_LTx,
         "prevalent_CTx": g.prevalent_CTx,
+        "new_KRT_patients": g.new_KRT_patients,
+        "proportion_ICHD": g.proportion_ICHD,
+        "proportion_PD": g.proportion_PD,
+        "proportion_HHD": g.proportion_HHD,
+        "proportion_LTx": g.proportion_LTx,
+        "proportion_CTx": g.proportion_CTx,
     })
 
 # Dialysis Unit Setup
@@ -556,5 +683,3 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
-
-
