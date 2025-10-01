@@ -453,7 +453,8 @@ class Model:
 # ---------------- STREAMLIT APP ----------------
 st.title("Renal Unit Simulation Model")
 
-st.image("Model_Diagram.png")
+st.write("This app allows you to test scenarios that might impact the demand and capacity of renal units and centres. This can be done by changing the parameters to the left and clicking Run Simulation below.")
+st.image("flow 2.drawio.png")
 
 # -------------------------------
 # Sidebar with grouped parameters
@@ -501,7 +502,7 @@ with st.sidebar.expander("Growth & Duration", expanded=True):
     st.session_state.params["sim_duration_days"] = g.sim_duration_days
 
     g.annual_growth_rate = st.number_input(
-        "Annual growth rate (%)",
+        "Annual Growth in Incidence Rate",
         min_value=0.0, max_value=0.1,
         value=st.session_state.params["annual_growth_rate"],
         step=0.005
@@ -530,46 +531,52 @@ with st.sidebar.expander("Patient Prevalence", expanded=False):
         "Prevalent Cadaver Tx", 0, 5000,
         value=st.session_state.params["prevalent_CTx"]
     )
-    g.new_KRT_patients = st.number_input(
-        "new_KRT_patients", 0, 5000,
-        value=st.session_state.params["new_KRT_patients"]
-    )
-    g.proportion_ICHD = st.number_input(
-        "proportion_ICHD (%)", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_ICHD"],
-        step=0.005
-    )
-    g.proportion_ICHD = st.number_input(
-        "proportion_PD (%)", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_PD"],
-        step=0.005
-    )
-    g.proportion_ICHD = st.number_input(
-        "proportion_HHD (%)", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_HHD"],
-        step=0.005
-    )
-    g.proportion_ICHD = st.number_input(
-        "proportion_LTx (%)", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_LTx"],
-        step=0.005
-    )
-    g.proportion_ICHD = st.number_input(
-        "proportion_CTx (%)", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_CTx"],
-        step=0.005
-    )
     st.session_state.params.update({
         "prevalent_ICHD": g.prevalent_ICHD,
         "prevalent_PD": g.prevalent_PD,
         "prevalent_HHD": g.prevalent_HHD,
         "prevalent_LTx": g.prevalent_LTx,
         "prevalent_CTx": g.prevalent_CTx,
+    })
+
+# Patient Incidence
+with st.sidebar.expander("Patient Incidence", expanded=False):
+
+    g.new_KRT_patients = st.number_input(
+        "KRT patient incidence per year", 0, 10000,
+        value=st.session_state.params["new_KRT_patients"]
+    )
+    g.proportion_ICHD = st.number_input(
+        "Proportion ICHD", 
+        min_value=0.0, max_value=1.0,
+        value=st.session_state.params["proportion_ICHD"],
+        step=0.005
+    )
+    g.proportion_ICHD = st.number_input(
+        "Proportion PD", 
+        min_value=0.0, max_value=1.0,
+        value=st.session_state.params["proportion_PD"],
+        step=0.005
+    )
+    g.proportion_ICHD = st.number_input(
+        "Proportion HHD", 
+        min_value=0.0, max_value=1.0,
+        value=st.session_state.params["proportion_HHD"],
+        step=0.005
+    )
+    g.proportion_ICHD = st.number_input(
+        "Proportion LTx", 
+        min_value=0.0, max_value=1.0,
+        value=st.session_state.params["proportion_LTx"],
+        step=0.005
+    )
+    g.proportion_ICHD = st.number_input(
+        "Proportion CTx", 
+        min_value=0.0, max_value=1.0,
+        value=st.session_state.params["proportion_CTx"],
+        step=0.005
+    )
+    st.session_state.params.update({
         "new_KRT_patients": g.new_KRT_patients,
         "proportion_ICHD": g.proportion_ICHD,
         "proportion_PD": g.proportion_PD,
