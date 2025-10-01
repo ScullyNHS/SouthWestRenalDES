@@ -119,7 +119,7 @@ class Model:
             np.random.seed(seed)
 
         self.results_df = pd.DataFrame(columns=[
-            'Patient Id', 'Patient Type', 'Entry Age',
+            'Run Number','Patient Id', 'Patient Type', 'Entry Age',
             'Q time station', 'Time in dialysis station', 'No of Sessions', 'Exit Age', 'Year'
         ])
 
@@ -166,27 +166,28 @@ class Model:
                 return 0
             self.env.process(self.activity_generator_ICHD(p))
             self.results_df.loc[len(self.results_df)] = {
-                'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
+                'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
             }
         for _ in range(g.prevalent_PD):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'PD')
             self.results_df.loc[len(self.results_df)] = {
-                'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
+                'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
             }
         for _ in range(g.prevalent_HHD):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'HHD')
             self.results_df.loc[len(self.results_df)] = {
-                'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
+                'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
             }
         for _ in range(g.prevalent_LTx):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'Live Transplant')
             self.results_df.loc[len(self.results_df)] = {
+                'Run Number': run_number,
                 'Patient Id': p.id,
                 'Patient Type': p.type,
                 'Entry Age': p.entry_age,
@@ -201,6 +202,7 @@ class Model:
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'Cadaver Transplant')
             self.results_df.loc[len(self.results_df)] = {
+                'Run Number': run_number,
                 'Patient Id': p.id,
                 'Patient Type': p.type,
                 'Entry Age': p.entry_age,
@@ -246,7 +248,7 @@ class Model:
             else:
                 return 0 
             self.results_df.loc[len(self.results_df)] = {
-                'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
+                'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions': 0,'Exit Age': p.age,'Year': year
             }
             self.env.process(self.activity_generator_ICHD(p))
@@ -260,7 +262,7 @@ class Model:
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'Cadaver Transplant')
             self.results_df.loc[len(self.results_df)] = {
-                'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
+                'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0, 'No of Sessions': 0, 
                 'Exit Age': p.age,'Year': year
             }
@@ -283,7 +285,7 @@ class Model:
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'PD')
             self.results_df.loc[len(self.results_df)] = {
-                'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
+                'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions': 0,'Exit Age': p.age,'Year': year
             }
             yield self.env.timeout(random.expovariate(1.0 / interarrival)) 
@@ -298,7 +300,7 @@ class Model:
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'HHD')
             self.results_df.loc[len(self.results_df)] = {
-                'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
+                'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions': 0,'Exit Age': p.age,'Year': year
             }
             yield self.env.timeout(random.expovariate(1.0 / interarrival))
@@ -313,7 +315,7 @@ class Model:
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'Live Transplant')
             self.results_df.loc[len(self.results_df)] = {
-                'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
+                'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0, 'No of Sessions': 0,
                  'Exit Age': p.age,'Year': year
             }
@@ -360,6 +362,7 @@ class Model:
     
         # Once the patient reaches the maximum age, record their details in the results table
         self.results_df.loc[len(self.results_df)] = {
+        'Run Number': run_number,
         'Patient Id': patient.id,
         'Patient Type': patient.type,
         'Entry Age': patient.entry_age,
@@ -401,6 +404,7 @@ class Model:
 
         # Once the patient reaches the maximum age, record their details in the results table
         self.results_df.loc[len(self.results_df)] = {
+        'Run Number': run_number,
         'Patient Id': patient.id,
         'Patient Type': patient.type,
         'Entry Age': patient.entry_age,
