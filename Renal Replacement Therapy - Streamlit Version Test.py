@@ -642,23 +642,23 @@ if st.button("Run Simulation"):
 
     all_results_list = pd.concat(all_results, ignore_index=True)
     
-    average_mean_q = sum(mean_queue_times) / num_runs
-    st.write(f"### Average mean queue time over {num_runs} runs: {average_mean_q:.2f} days")
+    # average_mean_q = sum(mean_queue_times) / num_runs
+    # st.write(f"### Average mean queue time over {num_runs} runs: {average_mean_q:.2f} days")
 
-    q_monitor_array = np.array([np.array(q)[:, 1] for q in all_queue_monitors])
-    avg_queue_length = np.mean(q_monitor_array, axis=0)
+    # q_monitor_array = np.array([np.array(q)[:, 1] for q in all_queue_monitors])
+    # avg_queue_length = np.mean(q_monitor_array, axis=0)
 
-    q_df = pd.DataFrame(all_queue_monitors[0], columns=["Day", "QueueLength"])
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(q_df["Day"] / 365, avg_queue_length, label="Average Queue length")
-    for yr in [5, 10, 15, 20, 25]:
-        ax.axvline(x=yr, color="red", linestyle="--", alpha=0.6)
-    ax.set_xlabel("Years")
-    ax.set_ylabel("Queue length")
-    ax.set_title(f"Average Dialysis Queue over {num_runs} Runs")
-    ax.legend()
-    ax.grid(True)
-    st.pyplot(fig)
+    # q_df = pd.DataFrame(all_queue_monitors[0], columns=["Day", "QueueLength"])
+    # fig, ax = plt.subplots(figsize=(10, 5))
+    # ax.plot(q_df["Day"] / 365, avg_queue_length, label="Average Queue length")
+    # for yr in [5, 10, 15, 20, 25]:
+    #     ax.axvline(x=yr, color="red", linestyle="--", alpha=0.6)
+    # ax.set_xlabel("Years")
+    # ax.set_ylabel("Queue length")
+    # ax.set_title(f"Average Dialysis Queue over {num_runs} Runs")
+    # ax.legend()
+    # ax.grid(True)
+    # st.pyplot(fig)
 
     # volume_tables = []
     # for results in all_results_list:
