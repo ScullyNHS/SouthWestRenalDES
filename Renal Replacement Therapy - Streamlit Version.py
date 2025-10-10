@@ -524,11 +524,11 @@ with st.sidebar.expander("Patient Prevalence", expanded=False):
         value=st.session_state.params["prevalent_HHD"]
     )
     g.prevalent_LTx = st.number_input(
-        "Prevalent Live Tx", 0, 5000,
+        "Prevalent Pre-Emptive Tx", 0, 5000,
         value=st.session_state.params["prevalent_LTx"]
     )
     g.prevalent_CTx = st.number_input(
-        "Prevalent Cadaver Tx", 0, 5000,
+        "Prevalent Non-Pre-Emptive Tx", 0, 5000,
         value=st.session_state.params["prevalent_CTx"]
     )
     st.session_state.params.update({
@@ -565,13 +565,13 @@ with st.sidebar.expander("Patient Incidence", expanded=False):
         step=0.005
     )
     g.proportion_ICHD = st.number_input(
-        "Proportion LTx", 
+        "Proportion PTx", 
         min_value=0.0, max_value=1.0,
         value=st.session_state.params["proportion_LTx"],
         step=0.005
     )
     g.proportion_ICHD = st.number_input(
-        "Proportion CTx", 
+        "Proportion NPTx", 
         min_value=0.0, max_value=1.0,
         value=st.session_state.params["proportion_CTx"],
         step=0.005
