@@ -74,9 +74,9 @@ class g:
             base = g.new_KRT_patients*g.proportion_PD
         elif modality == "HHD":
             base = g.new_KRT_patients*g.proportion_HHD
-        elif modality == "Live Transplant":
+        elif modality == "Pre-emptive Transplant":
             base = g.new_KRT_patients*g.proportion_LTx
-        elif modality == "Cadaver Transplant":
+        elif modality == "Non-pre-emptive Transplant":
             base = g.new_KRT_patients*g.proportion_CTx
         else:
             return 0
@@ -186,7 +186,7 @@ class Model:
             }
         for _ in range(g.prevalent_LTx):
             self.patient_counter += 1
-            p = Patient(self.patient_counter, 'Live Transplant')
+            p = Patient(self.patient_counter, 'Pre-emptive Transplant')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,
                 'Patient Id': p.id,
@@ -201,7 +201,7 @@ class Model:
 
         for _ in range(g.prevalent_CTx):
             self.patient_counter += 1
-            p = Patient(self.patient_counter, 'Cadaver Transplant')
+            p = Patient(self.patient_counter, 'Non-pre-emptive Transplant')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,
                 'Patient Id': p.id,
@@ -261,7 +261,7 @@ class Model:
         year = 1
         while self.env.now < g.sim_duration_days:
             self.patient_counter += 1
-            p = Patient(self.patient_counter, 'Cadaver Transplant')
+            p = Patient(self.patient_counter, 'Non-pre-emptive Transplant')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0, 'No of Sessions': 0, 
@@ -270,7 +270,7 @@ class Model:
             ## Cadaver patients require ICHD before their Tx
             ## This generator and activity account for this            
             self.env.process(self.activity_generator_CTx(p)) # Start patient activity process
-            interarrival = g.interarrival_days("Cadaver Transplant", year)
+            interarrival = g.interarrival_days("Non-pre-emptive Transplant", year)
             if not np.isfinite(interarrival) or interarrival <= 0:
                 break
                       
@@ -310,11 +310,11 @@ class Model:
     def generator_LTx_arrivals(self):
         year = 1
         while self.env.now < g.sim_duration_days:
-            interarrival = g.interarrival_days("Live Transplant", year)
+            interarrival = g.interarrival_days("Pre-emptive Transplant", year)
             if not np.isfinite(interarrival) or interarrival <= 0:
                 break
             self.patient_counter += 1
-            p = Patient(self.patient_counter, 'Live Transplant')
+            p = Patient(self.patient_counter, 'Pre-emptive Transplant')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0, 'No of Sessions': 0,
@@ -441,8 +441,8 @@ class Model:
         self.env.process(self.generator_ICHD_arrivals()) # Start the process that adds new ICHD patients to the system
         self.env.process(self.generator_PD_arrivals()) # Start the process that adds new PD patients to the system
         self.env.process(self.generator_HHD_arrivals()) # Start the process that adds new HHD patients to the system
-        self.env.process(self.generator_LTx_arrivals()) # Start the process that adds new Live Transplant patients to the system
-        self.env.process(self.generator_CTx_arrivals()) # Start the process that adds new Cadaver Transplant patients to the system
+        self.env.process(self.generator_LTx_arrivals()) # Start the process that adds new Pre-emptive Transplant patients to the system
+        self.env.process(self.generator_CTx_arrivals()) # Start the process that adds new Non-pre-emptive Transplant patients to the system
         self.env.process(self.monitor_queue()) # Start queue monitoring
         self.env.process(self.yearly_station_snapshot()) # Start station snapshot monitoring
 
@@ -673,6 +673,7 @@ if st.button("Run Simulation"):
 
     # Sum and average
     avg_volume_table = new_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().unstack(fill_value=0)
+    avg_volume_table_2 = new_patients_df.groupby(['Year', 'Patient Type'])['count'].mean()
 
     st.write("### Average Patient Incidence by Year and Modality")
     st.dataframe(avg_volume_table)
@@ -687,6 +688,16 @@ if st.button("Run Simulation"):
         file_name="Renal_patient_incidence.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+    fig1 = px.line(
+        avg_volume_table_2,
+        facet_col = "Patient Type",
+        facet_col_wrap = 2,
+        labels={"value": "Average Incidence", "index": "Year", "variable": "Patient Type"},
+        title="Average Incidence By Year"
+    )
+
+    st.plotly_chart(fig1, use_container_width=True)
 
     avg_sessions_table = sum(all_sessions_list) / len(all_sessions_list)
     avg_sessions_table = avg_sessions_table.round(2)  
@@ -711,7 +722,7 @@ if st.button("Run Simulation"):
 
     # Sum and average
     avg_exit_table = exit_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().unstack(fill_value=0)
-    st.write("### Average Number of Exits by Year")
+    st.write("### Average Number of Patients Completing Dialysis by Year")
     st.dataframe(avg_exit_table)
 
     # Download Excel
@@ -748,7 +759,7 @@ if st.button("Run Simulation"):
     # Sum and average
     avg_prev_table = prevalence_df_ichd.groupby(['Year', 'Patient Type'])['Count_Prev'].mean().unstack(fill_value=0)
     st.write("### Average Prevalence by Year")
-    st.dataframe(avg_prev_table)
+    #st.dataframe(avg_prev_table)
 
     # Download Excel
     output = BytesIO()
