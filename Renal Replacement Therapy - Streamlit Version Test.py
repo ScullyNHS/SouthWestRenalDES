@@ -739,7 +739,9 @@ if st.button("Run Simulation"):
     # Calculate the difference between new and exit patients and prevalence
     prevalence_df_ichd["count_exit"] = prevalence_df_ichd["count_exit"].fillna(0)
     prevalence_df_ichd["Count_diff"] = prevalence_df_ichd["count_new"] - prevalence_df_ichd["count_exit"]
-    prevalence_df_ichd["Count_Prev"] = prevalence_df_ichd["Count_diff"].cumsum()
+    prevalence_df_ichd["Count_Prev"] = (
+    prevalence_df_ichd.groupby("Run Number")["Count_diff"].cumsum()
+    )
     
     st.write("### Prevalence by Year")
     st.dataframe(prevalence_df_ichd)
