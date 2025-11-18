@@ -737,12 +737,12 @@ if st.button("Run Simulation"):
     prevalence_df_ichd = prevalence_df[ prevalence_df["Patient Type"] == "ICHD" ]
 
     # Calculate the difference between new and exit patients and prevalence
-    prevalence_df["count_exit"] = prevalence_df["count_exit"].fillna(0)
-    prevalence_df["Count_diff"] = prevalence_df["count_new"] - prevalence_df["count_exit"]
-    prevalence_df["Count_Prev"] = prevalence_df["count_new"].iloc[0] + prevalence_df["Count_diff"].cumsum()
+    prevalence_df_ichd["count_exit"] = prevalence_df_ichd["count_exit"].fillna(0)
+    prevalence_df_ichd["Count_diff"] = prevalence_df_ichd["count_new"] - prevalence_df_ichd["count_exit"]
+    prevalence_df_ichd["Count_Prev"] = prevaleprevalence_df_ichdnce_df["count_new"].iloc[0] + prevalence_df_ichd["Count_diff"].cumsum()
     
     st.write("### Prevalence by Year")
-    st.dataframe(prevalence_df)
+    st.dataframe(prevalence_df_ichd)
 
     # Sum and average
     avg_prev_table = prevalence_df_ichd.groupby(['Year', 'Patient Type'])['Count_Prev'].mean().unstack(fill_value=0)
