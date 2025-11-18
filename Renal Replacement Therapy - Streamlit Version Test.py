@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import time
 import warnings
 import openpyxl 
+import plotly.express as px
 import streamlit as st
 from io import BytesIO
 
@@ -761,17 +762,13 @@ if st.button("Run Simulation"):
     )
 
     # Line chart
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig = px.line(
+        avg_prev_table,
+        labels={"value": "Average Prevalence", "index": "Year", "variable": "Patient Type"},
+        title="Average Prevalence By Year"
+    )
 
-    avg_prev_table.plot(kind='line', marker='o', ax=ax)
-
-    ax.set_title("Average Prevalence by Year")
-    ax.set_xlabel("Year")
-    ax.set_ylabel("Average Count_Prev")
-    ax.grid(True)
-    ax.legend(title="Patient Type")
-
-    st.pyplot(fig)
+    st.plotly_chart(fig, use_container_width=True)
 
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
