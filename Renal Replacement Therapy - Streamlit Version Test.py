@@ -814,8 +814,9 @@ if st.button("Run Simulation"):
     st.download_button(
         label="Download results as Excel",
         data=output.getvalue(),
-        file_name="Renal_prev_volumes.xlsx",
+        file_name="Renal_Unit_Simulation_Results.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
