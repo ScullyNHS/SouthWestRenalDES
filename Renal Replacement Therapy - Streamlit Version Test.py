@@ -735,9 +735,9 @@ if st.button("Run Simulation"):
     )
 
     # Calculate the difference between new and exit patients and prevalence
-    prevalence_df["Count_exit"] = prevalence_df["Count_exit"].fillna(0)
-    prevalence_df["Count_diff"] = prevalence_df["Count_new"] - prevalence_df["Count_exit"]
-    prevalence_df["Count_Prev"] = prevalence_df["Count_new"].iloc[0] + prevalence_df["Count_diff"].cumsum()
+    prevalence_df["count_exit"] = prevalence_df["count_exit"].fillna(0)
+    prevalence_df["Count_diff"] = prevalence_df["count_new"] - prevalence_df["count_exit"]
+    prevalence_df["Count_Prev"] = prevalence_df["count_new"].iloc[0] + prevalence_df["Count_diff"].cumsum()
     prevalence_df_ichd = prevalence_df[ prevalence_df["Patient Type"] == "ICHD" ]
 
 
@@ -759,3 +759,4 @@ if st.button("Run Simulation"):
 
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
