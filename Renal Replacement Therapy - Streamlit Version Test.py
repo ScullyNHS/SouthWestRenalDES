@@ -694,15 +694,15 @@ if st.button("Run Simulation"):
     st.plotly_chart(fig1, use_container_width=True)
 
      # Download Excel
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        avg_volume_table.to_excel(writer, sheet_name="Avg Patients by Year")
-    st.download_button(
-        label="Download results as Excel",
-        data=output.getvalue(),
-        file_name="Renal_patient_incidence.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    # output = BytesIO()
+    # with pd.ExcelWriter(output, engine="openpyxl") as writer:
+    #     avg_volume_table.to_excel(writer, sheet_name="Avg Patients by Year")
+    # st.download_button(
+    #     label="Download results as Excel",
+    #     data=output.getvalue(),
+    #     file_name="Renal_patient_incidence.xlsx",
+    #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    # )
 
     # ## Sessions
 
@@ -723,15 +723,15 @@ if st.button("Run Simulation"):
     st.plotly_chart(fig2, use_container_width=True)
 
     # Download Excel
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        avg_sessions_table.to_excel(writer, sheet_name="Avg Sessions by Year")
-    st.download_button(
-        label="Download results as Excel",
-        data=output.getvalue(),
-        file_name="Renal_session_volumes.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    # output = BytesIO()
+    # with pd.ExcelWriter(output, engine="openpyxl") as writer:
+    #     avg_sessions_table.to_excel(writer, sheet_name="Avg Sessions by Year")
+    # st.download_button(
+    #     label="Download results as Excel",
+    #     data=output.getvalue(),
+    #     file_name="Renal_session_volumes.xlsx",
+    #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    # )
 
     # ## Exit patients output
 
@@ -760,15 +760,15 @@ if st.button("Run Simulation"):
     st.plotly_chart(fig3, use_container_width=True)
 
     # Download Excel
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        avg_exit_table.to_excel(writer, sheet_name="Avg Patients by Year")
-    st.download_button(
-        label="Download results as Excel",
-        data=output.getvalue(),
-        file_name="Renal_exit_volumes.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    # output = BytesIO()
+    # with pd.ExcelWriter(output, engine="openpyxl") as writer:
+    #     avg_exit_table.to_excel(writer, sheet_name="Avg Patients by Year")
+    # st.download_button(
+    #     label="Download results as Excel",
+    #     data=output.getvalue(),
+    #     file_name="Renal_exit_volumes.xlsx",
+    #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    # )
 
 
     # ## Pt Prevalence output
@@ -808,6 +808,9 @@ if st.button("Run Simulation"):
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         avg_prev_table.to_excel(writer, sheet_name="Avg Patients by Year")
+        avg_volume_table.to_excel(writer, sheet_name="Avg Incidence by Year")
+        avg_sessions_table.to_excel(writer, sheet_name="Avg Sessions by Year")
+        avg_exit_table.to_excel(writer, sheet_name="Avg HD Comp by Year")
     st.download_button(
         label="Download results as Excel",
         data=output.getvalue(),
