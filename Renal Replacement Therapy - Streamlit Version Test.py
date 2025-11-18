@@ -677,9 +677,23 @@ if st.button("Run Simulation"):
     avg_volume_table_2 = avg_volume_table_2[avg_volume_table_2['Year']!=0]
 
     st.write("### Average Patient Incidence by Year and Modality")
-    st.dataframe(avg_volume_table_2)
+    #st.dataframe(avg_volume_table_2)
 
-    # Download Excel
+    fig1 = px.line(
+        avg_volume_table_2,
+        x="Year",
+        y="count",
+        facet_col = "Patient Type",
+        facet_col_wrap = 2,
+        labels={"count": "Average Incidence", "index": "Year", "variable": "Patient Type"},
+        title="Average Incidence By Year"
+    )
+
+    fig1.update_yaxes(matches=None)
+
+    st.plotly_chart(fig1, use_container_width=True)
+
+     # Download Excel
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         avg_volume_table.to_excel(writer, sheet_name="Avg Patients by Year")
@@ -690,24 +704,21 @@ if st.button("Run Simulation"):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    fig1 = px.line(
-        avg_volume_table_2,
-        x="Year",
-        y="count",
-        facet_col = "Patient Type",
-        facet_col_wrap = 2,
-        labels={"value": "Average Incidence", "index": "Year", "variable": "Patient Type"},
-        title="Average Incidence By Year"
-    )
-
-    fig1.update_yaxes(matches=None)
-    
-    st.plotly_chart(fig1, use_container_width=True)
+    # ## Sessions
 
     avg_sessions_table = sum(all_sessions_list) / len(all_sessions_list)
     avg_sessions_table = avg_sessions_table.round(2)  
     st.write("### Average Number of Sessions by Year")
     st.dataframe(avg_sessions_table)
+
+    # Line chart
+    fig2 = px.line(
+        avg_sessions_table,
+        labels={"value": "Average No. of Sessions", "index": "Year", "variable": "Patient Type"},
+        title="Average No. of Sessions By Year"
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
 
     # Download Excel
     output = BytesIO()
@@ -727,8 +738,24 @@ if st.button("Run Simulation"):
 
     # Sum and average
     avg_exit_table = exit_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().unstack(fill_value=0)
+    avg_exit_table_2 = exit_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().reset_index(name='count')
+
     st.write("### Average Number of Patients Completing Dialysis by Year")
     st.dataframe(avg_exit_table)
+
+    fig3 = px.line(
+        avg_exit_table_2,
+        x="Year",
+        y="count",
+        facet_col = "Patient Type",
+        facet_col_wrap = 2,
+        labels={"count": "Average No. of Pts Completing Dialysis", "index": "Year", "variable": "Patient Type"},
+        title="Average Dialysis Completions By Year"
+    )
+
+    fig3.update_yaxes(matches=None)
+
+    st.plotly_chart(fig1, use_container_width=True)
 
     # Download Excel
     output = BytesIO()
@@ -766,7 +793,16 @@ if st.button("Run Simulation"):
     st.write("### Average Prevalence by Year")
     #st.dataframe(avg_prev_table)
 
-    # Download Excel
+    # Line chart
+    fig = px.line(
+        avg_prev_table,
+        labels={"value": "Average Prevalence", "index": "Year", "variable": "Patient Type"},
+        title="Average Prevalence By Year"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+     # Download Excel
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         avg_prev_table.to_excel(writer, sheet_name="Avg Patients by Year")
@@ -777,16 +813,4 @@ if st.button("Run Simulation"):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    # Line chart
-    fig = px.line(
-        avg_prev_table,
-        labels={"value": "Average Prevalence", "index": "Year", "variable": "Patient Type"},
-        title="Average Prevalence By Year"
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
-
-
