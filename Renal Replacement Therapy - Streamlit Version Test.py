@@ -502,7 +502,7 @@ with st.sidebar.expander("Growth & Duration", expanded=True):
     st.session_state.params["sim_duration_days"] = g.sim_duration_days
 
     g.annual_growth_rate = st.number_input(
-        "Annual Growth in Incidence Rate",
+        "Annual Percentage Growth in Incidence",
         min_value=0.0, max_value=0.1,
         value=st.session_state.params["annual_growth_rate"],
         step=0.005
@@ -721,6 +721,39 @@ if st.button("Run Simulation"):
         label="Download results as Excel",
         data=output.getvalue(),
         file_name="Renal_exit_volumes.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+
+    # ## Pt Prevalence output
+
+    prevalence_df = new_patients_df.merge(
+        exit_patients_df,
+        on=["Run Number", "Year", "Patient Type"],
+        how="left",
+        suffixes=("_new", "_exit")  # renames the Count columns
+    )
+
+    # Calculate the difference between new and exit patients and prevalence
+    prevalence_df["Count_exit"] = prevalence_df["Count_exit"].fillna(0)
+    prevalence_df["Count_diff"] = prevalence_df["Count_new"] - prevalence_df["Count_exit"]
+    prevalence_df["Count_Prev"] = prevalence_df["Count_new"].iloc[0] + prevalence_df["Count_diff"].cumsum()
+    prevalence_df_ichd = prevalence_df[ prevalence_df["Patient Type"] == "ICHD" ]
+
+
+    # Sum and average
+    avg_prev_table = prevalence_df_ichd.groupby(['Year', 'Patient Type'])['Count_Prev'].mean().unstack(fill_value=0)
+    st.write("### Average Prevalence by Year")
+    st.dataframe(avg_prev_table)
+
+    # Download Excel
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        avg_prev_table.to_excel(writer, sheet_name="Avg Patients by Year")
+    st.download_button(
+        label="Download results as Excel",
+        data=output.getvalue(),
+        file_name="Renal_prev_volumes.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
