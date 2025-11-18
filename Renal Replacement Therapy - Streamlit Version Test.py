@@ -685,7 +685,7 @@ if st.button("Run Simulation"):
         y="count",
         facet_col = "Patient Type",
         facet_col_wrap = 2,
-        labels={"count": "Average Incidence", "index": "Year", "variable": "Patient Type"},
+        labels={"count": "Incidence", "index": "Year", "variable": "Patient Type"},
         title="Average Incidence By Year"
     )
 
@@ -709,12 +709,14 @@ if st.button("Run Simulation"):
     avg_sessions_table = sum(all_sessions_list) / len(all_sessions_list)
     avg_sessions_table = avg_sessions_table.round(2)  
     st.write("### Average Number of Sessions by Year")
-    st.dataframe(avg_sessions_table)
+    #st.dataframe(avg_sessions_table)
 
     # Line chart
     fig2 = px.line(
         avg_sessions_table,
-        labels={"value": "Average No. of Sessions", "index": "Year", "variable": "Patient Type"},
+        x="Year",
+        y="Session Count",
+        labels={"value": "Average No. of Sessions", "index": "Year"},
         title="Average No. of Sessions By Year"
     )
 
@@ -755,7 +757,7 @@ if st.button("Run Simulation"):
 
     fig3.update_yaxes(matches=None)
 
-    st.plotly_chart(fig1, use_container_width=True)
+    st.plotly_chart(fig3, use_container_width=True)
 
     # Download Excel
     output = BytesIO()
