@@ -689,15 +689,17 @@ if st.button("Run Simulation"):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    # fig1 = px.line(
-    #     avg_volume_table_2,
-    #     facet_col = "Patient Type",
-    #     facet_col_wrap = 2,
-    #     labels={"value": "Average Incidence", "index": "Year", "variable": "Patient Type"},
-    #     title="Average Incidence By Year"
-    # )
+    fig1 = px.line(
+        avg_volume_table_2,
+        x="Year",
+        y="count",
+        facet_col = "Patient Type",
+        facet_col_wrap = 2,
+        labels={"value": "Average Incidence", "index": "Year", "variable": "Patient Type"},
+        title="Average Incidence By Year"
+    )
 
-    # st.plotly_chart(fig1, use_container_width=True)
+    st.plotly_chart(fig1, use_container_width=True)
 
     avg_sessions_table = sum(all_sessions_list) / len(all_sessions_list)
     avg_sessions_table = avg_sessions_table.round(2)  
@@ -783,4 +785,3 @@ if st.button("Run Simulation"):
 
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
-
