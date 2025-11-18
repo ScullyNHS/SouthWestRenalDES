@@ -700,6 +700,8 @@ if st.button("Run Simulation"):
         title="Average Incidence By Year"
     )
 
+    fig1.update_yaxes(matches=None)
+    
     st.plotly_chart(fig1, use_container_width=True)
 
     avg_sessions_table = sum(all_sessions_list) / len(all_sessions_list)
@@ -786,4 +788,5 @@ if st.button("Run Simulation"):
 
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
 
