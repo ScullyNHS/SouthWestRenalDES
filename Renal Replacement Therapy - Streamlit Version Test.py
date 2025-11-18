@@ -743,9 +743,7 @@ if st.button("Run Simulation"):
     prevalence_df_ichd.groupby("Run Number")["Count_diff"].cumsum()
     )
     
-    st.write("### Prevalence by Year")
-    st.dataframe(prevalence_df_ichd)
-
+    
     # Sum and average
     avg_prev_table = prevalence_df_ichd.groupby(['Year', 'Patient Type'])['Count_Prev'].mean().unstack(fill_value=0)
     st.write("### Average Prevalence by Year")
@@ -761,6 +759,19 @@ if st.button("Run Simulation"):
         file_name="Renal_prev_volumes.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+    # Line chart
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    avg_prev_table.plot(kind='line', marker='o', ax=ax)
+
+    ax.set_title("Average Prevalence by Year")
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Average Count_Prev")
+    ax.grid(True)
+    ax.legend(title="Patient Type")
+
+    st.pyplot(fig)
 
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
