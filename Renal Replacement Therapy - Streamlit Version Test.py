@@ -674,6 +674,7 @@ if st.button("Run Simulation"):
     # Sum and average
     avg_volume_table = new_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().unstack(fill_value=0)
     avg_volume_table_2 = new_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().reset_index(name='count')
+    avg_volume_table_2 = avg_volume_table_2[avg_volume_table_2['Year']!=0]
 
     st.write("### Average Patient Incidence by Year and Modality")
     st.dataframe(avg_volume_table_2)
@@ -785,3 +786,4 @@ if st.button("Run Simulation"):
 
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
