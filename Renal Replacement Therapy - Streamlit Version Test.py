@@ -504,7 +504,7 @@ with st.sidebar.expander("Growth & Duration", expanded=True):
 
     per_growth_rate = st.number_input(
         "Annual Percentage Growth in Incidence",
-        min_value=0.0, max_value=1.0,
+        min_value=0.0, max_value=10.0,
         value=st.session_state.params["annual_growth_rate"]*100,
         step=0.5
     )
@@ -820,3 +820,4 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
