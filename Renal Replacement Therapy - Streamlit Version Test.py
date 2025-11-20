@@ -463,7 +463,7 @@ st.image("flow 2.drawio.png")
 def get_g_defaults():
     return {
         "sim_duration_days": g.sim_duration_days,
-        "annual_growth_rate": g.annual_growth_rate,
+        "annual_growth_rate": g.annual_growth_rate*100,
         "prevalent_ICHD": g.prevalent_ICHD,
         "prevalent_PD": g.prevalent_PD,
         "prevalent_HHD": g.prevalent_HHD,
@@ -504,11 +504,11 @@ with st.sidebar.expander("Growth & Duration", expanded=True):
 
     g.annual_growth_rate = st.number_input(
         "Annual Percentage Growth in Incidence",
-        min_value=0.0, max_value=0.1,
+        min_value=0.0, max_value=10.0,
         value=st.session_state.params["annual_growth_rate"],
         step=0.005
     )
-    st.session_state.params["annual_growth_rate"] = g.annual_growth_rate
+    st.session_state.params["annual_growth_rate"]/100 = g.annual_growth_rate
 
 # Patient Prevalence
 with st.sidebar.expander("Patient Prevalence", expanded=False):
@@ -819,4 +819,3 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
-
