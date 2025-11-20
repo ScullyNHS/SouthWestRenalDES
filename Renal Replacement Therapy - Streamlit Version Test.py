@@ -508,7 +508,7 @@ with st.sidebar.expander("Growth & Duration", expanded=True):
         value=st.session_state.params["annual_growth_rate"],
         step=0.005
     )
-    st.session_state.params["annual_growth_rate"]/100 = g.annual_growth_rate
+    st.session_state.params["annual_growth_rate"]//100 = g.annual_growth_rate
 
 # Patient Prevalence
 with st.sidebar.expander("Patient Prevalence", expanded=False):
@@ -819,3 +819,4 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
