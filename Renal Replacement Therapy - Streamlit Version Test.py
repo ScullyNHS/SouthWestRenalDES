@@ -508,7 +508,7 @@ with st.sidebar.expander("Growth & Duration", expanded=True):
         value=st.session_state.params["annual_growth_rate"]*100,
         step=0.5
     )
-    g.annual_growth_rate = per_growth_rate // 100
+    g.annual_growth_rate = per_growth_rate / 100
     st.session_state.params["annual_growth_rate"] = g.annual_growth_rate
 
 # Patient Prevalence
@@ -554,35 +554,39 @@ with st.sidebar.expander("Patient Incidence", expanded=False):
         value=st.session_state.params["proportion_ICHD"]*100,
         step=0.5
     )
-    g.proportion_ICHD = per_ICHD // 100
+    
     per_PD = st.number_input(
         "Proportion PD (%)", 
         min_value=0.0, max_value=100.0,
         value=st.session_state.params["proportion_PD"]*100,
         step=0.5
     )
-    g.proportion_PD = per_PD // 100
+    
     per_HHD = st.number_input(
         "Proportion HHD (%)", 
         min_value=0.0, max_value=100.0,
         value=st.session_state.params["proportion_HHD"]*100,
         step=0.5
     )
-    g.proportion_HHD = per_HHD // 100
+    
     per_PTx = st.number_input(
         "Proportion PTx (%)", 
         min_value=0.0, max_value=100.0,
         value=st.session_state.params["proportion_LTx"]*100,
         step=0.5
     )
-    g.proportion_LTx = per_PTx // 100
+    
     per_NPTx = st.number_input(
         "Proportion NPTx (%)", 
         min_value=0.0, max_value=100.0,
         value=st.session_state.params["proportion_CTx"]*100,
         step=0.5
     )
-    g.proportion_CTx = per_NPTx // 100
+    g.proportion_HHD = per_HHD / 100
+    g.proportion_PD = per_PD / 100
+    g.proportion_ICHD = per_ICHD / 100
+    g.proportion_LTx = per_PTx / 100
+    g.proportion_CTx = per_NPTx / 100
     st.session_state.params.update({
         "new_KRT_patients": g.new_KRT_patients,
         "proportion_ICHD": g.proportion_ICHD,
