@@ -548,36 +548,41 @@ with st.sidebar.expander("Patient Incidence", expanded=False):
         "KRT patient incidence per year", 0, 10000,
         value=st.session_state.params["new_KRT_patients"]
     )
-    g.proportion_ICHD = st.number_input(
-        "Proportion ICHD", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_ICHD"],
-        step=0.005
+    per_ICHD = st.number_input(
+        "Proportion ICHD (%)", 
+        min_value=0.0, max_value=100.0,
+        value=st.session_state.params["proportion_ICHD"]*100,
+        step=0.5
     )
-    g.proportion_ICHD = st.number_input(
-        "Proportion PD", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_PD"],
-        step=0.005
+    g.proportion_ICHD = per_ICHD // 100
+    per_PD = st.number_input(
+        "Proportion PD (%)", 
+        min_value=0.0, max_value=100.0,
+        value=st.session_state.params["proportion_PD"]*100,
+        step=0.5
     )
-    g.proportion_ICHD = st.number_input(
-        "Proportion HHD", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_HHD"],
-        step=0.005
+    g.proportion_PD = per_PD // 100
+    per_HHD = st.number_input(
+        "Proportion HHD (%)", 
+        min_value=0.0, max_value=100.0,
+        value=st.session_state.params["proportion_HHD"]*100,
+        step=0.5
     )
-    g.proportion_ICHD = st.number_input(
-        "Proportion PTx", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_LTx"],
-        step=0.005
+    g.proportion_HHD = per_HHD // 100
+    per_PTx = st.number_input(
+        "Proportion PTx (%)", 
+        min_value=0.0, max_value=100.0,
+        value=st.session_state.params["proportion_LTx"]*100,
+        step=0.5
     )
-    g.proportion_ICHD = st.number_input(
-        "Proportion NPTx", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_CTx"],
-        step=0.005
+    g.proportion_LTx = per_PTx // 100
+    per_NPTx = st.number_input(
+        "Proportion NPTx (%)", 
+        min_value=0.0, max_value=100.0,
+        value=st.session_state.params["proportion_CTx"]*100,
+        step=0.5
     )
+    g.proportion_CTx = per_NPTx // 100
     st.session_state.params.update({
         "new_KRT_patients": g.new_KRT_patients,
         "proportion_ICHD": g.proportion_ICHD,
@@ -820,4 +825,3 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
-
