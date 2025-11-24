@@ -19,17 +19,17 @@ class g:
 
     # ---------------- Baseline Data ----------------
     Unit = 'EXETER'
-    prevalent_ICHD = 511
-    prevalent_PD   = 79
-    prevalent_HHD  = 16
+    prevalent_ICHD = 489
+    prevalent_PD   = 71
+    prevalent_HHD  = 22
     prevalent_LTx   = 195
     prevalent_CTx   = 391
 
-    proportion_ICHD = 0.428691275
-    proportion_PD = 0.066275168
-    proportion_HHD = 0.013422819
-    proportion_LTx = 0.163590604
-    proportion_CTx = 0.328020134
+    proportion_ICHD = 0.665413533834586
+    proportion_PD = 0.0633802816901408
+    proportion_HHD = 0.0211267605633803
+    proportion_LTx = 0.151408450704225
+    proportion_CTx = 0.140845070422535
 
     number_of_stations = 113
 
@@ -63,7 +63,7 @@ class g:
     
     # New patients per year
 
-    new_KRT_patients = 210
+    new_KRT_patients = 284
 
     # ----------- Growth-driven arrivals ------------
     @staticmethod
@@ -479,7 +479,21 @@ def get_g_defaults():
         "mean_consult_time": g.mean_consult_time,
         "min_age": g.min_age,
         "max_age": g.max_age,
-        "num_runs": 5
+        "num_runs": 5,
+        "max_24yr": g.max_24yr_sessions,
+        "max_29yr": g.max_29yr_sessions,
+        "max_34yr": g.max_34yr_sessions,
+        "max_39yr": g.max_39yr_sessions,
+        "max_44yr": g.max_44yr_sessions,
+        "max_49yr": g.max_49yr_sessions,
+        "max_54yr": g.max_54yr_sessions,
+        "max_59yr": g.max_59yr_sessions,
+        "max_64yr": g.max_64yr_sessions,
+        "max_69yr": g.max_69yr_sessions,
+        "max_74yr": g.max_74yr_sessions,
+        "max_79yr": g.max_79yr_sessions,
+        "max_80yr": g.max_80yr_sessions,
+        "max_NPre": g.max_CTx_sessions
     }
 
 # Initialize session state defaults if not set
@@ -596,6 +610,17 @@ with st.sidebar.expander("Patient Incidence", expanded=False):
         "proportion_CTx": g.proportion_CTx,
     })
 
+# Maximum Sessions by age
+with st.sidebar.expander("Maximum Years on Dialysis", expanded=False):
+    Max_24yr = st.number_input(
+        "18-24 year old", 
+        min_value=0.0, max_value=100.0,
+        value=st.session_state.params["max_24yr"]/52/3,
+        step=0.5
+    ) 
+    g.max_24yr_sessions = Max_24yr*52*3   
+    st.session_state.params["max_24yr"] = g.max_24yr_sessions
+    
 # Dialysis Unit Setup
 with st.sidebar.expander("Dialysis Unit Setup", expanded=False):
     g.number_of_stations = st.number_input(
@@ -829,4 +854,3 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
-
