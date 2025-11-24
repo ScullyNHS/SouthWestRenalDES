@@ -817,7 +817,7 @@ if st.button("Run Simulation"):
      # Download Excel
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        avg_prev_table.to_excel(writer, sheet_name="Avg Patients by Year")
+        avg_prev_table.to_excel(writer, sheet_name="Avg Prevalence by Year")
         avg_volume_table.to_excel(writer, sheet_name="Avg Incidence by Year")
         avg_sessions_table.to_excel(writer, sheet_name="Avg Sessions by Year")
         avg_exit_table.to_excel(writer, sheet_name="Avg HD Comp by Year")
@@ -829,3 +829,4 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
