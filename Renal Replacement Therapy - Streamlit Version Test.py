@@ -958,6 +958,11 @@ if st.button("Run Simulation"):
 
     st.plotly_chart(fig, use_container_width=True)
 
+    # All results tab
+
+    all_results_df = pd.DataFrame(all_results_list, columns = ['Run Number', 'Patient Id', 'Patient Type','Entry Age','Q time station',
+       'Total dialysis time','No of Sessions','Exit Age','Year'])
+
      # Download Excel
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -965,6 +970,7 @@ if st.button("Run Simulation"):
         avg_volume_table.to_excel(writer, sheet_name="Avg Incidence by Year")
         avg_sessions_table.to_excel(writer, sheet_name="Avg Sessions by Year")
         avg_exit_table.to_excel(writer, sheet_name="Avg HD Comp by Year")
+        all_results_df.to_excel(writer, sheet_name="All Results")
     st.download_button(
         label="Download results as Excel",
         data=output.getvalue(),
