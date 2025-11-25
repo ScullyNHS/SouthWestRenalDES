@@ -168,21 +168,21 @@ class Model:
             self.env.process(self.activity_generator_ICHD(p))
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
-                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
+                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 1
             }
         for _ in range(g.prevalent_PD):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'PD')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
-                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
+                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 1
             }
         for _ in range(g.prevalent_HHD):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'HHD')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
-                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
+                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 1
             }
         for _ in range(g.prevalent_LTx):
             self.patient_counter += 1
@@ -196,7 +196,7 @@ class Model:
                 'Time in dialysis station': 0,
                 'No of Sessions': 0,
                 'Exit Age': p.age,
-                'Year': 0
+                'Year': 1
             }
 
         for _ in range(g.prevalent_CTx):
@@ -211,7 +211,7 @@ class Model:
                 'Time in dialysis station': 0,
                 'No of Sessions': 0,
                 'Exit Age': p.age,
-                'Year': 0
+                'Year': 1
             }
 
     # ---------------- Arrival Generators ----------------
@@ -371,7 +371,7 @@ class Model:
         'Total dialysis time': total_dialysis_time,
         'No of Sessions': session_count,
         'Exit Age': patient.age,
-        'Year': int(self.env.now / 365)
+        'Year': int(self.env.now / 365)+1
         }
 
     def activity_generator_CTx(self, patient):
@@ -413,7 +413,7 @@ class Model:
         'Total dialysis time': total_dialysis_time,
         'No of Sessions': session_count,
         'Exit Age': patient.age,
-        'Year': int(self.env.now / 365)
+        'Year': int(self.env.now / 365)+1
         }   
 
     # ---------------- Queue Monitoring ----------------
@@ -425,7 +425,7 @@ class Model:
 
     #---------------- Station Monitoring ------------
     def yearly_station_snapshot(self):
-        for year in range(0, g.sim_duration_years +1):
+        for year in range(1, g.sim_duration_years +1):
             self.sessions_per_year.loc[len(self.sessions_per_year)] = {
             'Year':year, 
             'Session Count':self.station_usage_count}
