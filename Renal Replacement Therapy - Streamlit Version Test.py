@@ -61,6 +61,7 @@ class g:
     max_80yr_sessions = 52*3*1
     max_CTx_sessions = 78
     max_HHD_duration = 608
+    max_PD_duration = 489
 
     # New patients per year
 
@@ -174,6 +175,7 @@ class Model:
         for _ in range(g.prevalent_PD):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'PD')
+            self.env.process(self.activity_generator_PD(p))
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
@@ -282,15 +284,16 @@ class Model:
     def generator_PD_arrivals(self):
         year = 0
         while self.env.now < g.sim_duration_days: 
-            interarrival = g.interarrival_days("PD", year) 
-            if not np.isfinite(interarrival) or interarrival <= 0: 
-                break 
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'PD')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions': 0,'Exit Age': p.age,'Year': year
             }
+            self.env.process(self.activity_generator_PD(p)) # Start patient activity process
+            interarrival = g.interarrival_days("PD", year) 
+            if not np.isfinite(interarrival) or interarrival <= 0: 
+                break 
             yield self.env.timeout(random.expovariate(1.0 / interarrival)) 
             year = int(self.env.now / 365)  
 
@@ -436,6 +439,25 @@ class Model:
         'Exit Age': patient.age,
         'Year': int(self.env.now / 365)
         }   
+
+    # PD
+
+    def activity_generator_PD(self, patient):
+        yield self.env.timeout(g.max_PD_duration)
+        patient.age += g.max_PD_duration * g.age_increment_per_day
+
+        self.results_df.loc[len(self.results_df)] = {
+        'Run Number': run_number,
+        'Patient Id': patient.id,
+        'Patient Type': patient.type,
+        'Entry Age': patient.entry_age,
+        'Q time station': patient.q_time_station,
+        'Total dialysis time': 0,
+        'No of Sessions': g.max_PD_duration,
+        'Exit Age': patient.age,
+        'Year': int(self.env.now / 365)
+        }   
+
 
     # ---------------- Queue Monitoring ----------------
     def monitor_queue(self, interval=30):
@@ -926,7 +948,7 @@ if st.button("Run Simulation"):
         y="count",
         facet_col = "Patient Type",
         facet_col_wrap = 2,
-        labels={"count": "Average No. of Pts Completing Dialysis", "index": "Year", "variable": "Patient Type"},
+        labels={"index": "Year", "variable": "Patient Type"},
         title="Average Dialysis Completions By Year"
     )
 
