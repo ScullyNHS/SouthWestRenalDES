@@ -611,7 +611,7 @@ with st.sidebar.expander("Patient Incidence", expanded=False):
     })
 
 # Maximum Sessions by age
-with st.sidebar.expander("Maximum Years on Dialysis", expanded=False):
+with st.sidebar.expander("Maximum Years on In-Centre Dialysis", expanded=False):
     Max_24yr = st.number_input(
         "18-24 year old", 
         min_value=0.0, max_value=30.0,
@@ -973,3 +973,4 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
