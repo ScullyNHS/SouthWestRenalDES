@@ -425,7 +425,7 @@ class Model:
 
     #---------------- Station Monitoring ------------
     def yearly_station_snapshot(self):
-        for year in range(1, g.sim_duration_years +1):
+        for year in range(0, g.sim_duration_years +1):
             yield self.env.timeout(g.year_duration)
             self.sessions_per_year.loc[len(self.sessions_per_year)] = {
             'Year':year, 
@@ -973,4 +973,5 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
 
