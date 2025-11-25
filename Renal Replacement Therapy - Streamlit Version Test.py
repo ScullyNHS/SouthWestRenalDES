@@ -168,21 +168,21 @@ class Model:
             self.env.process(self.activity_generator_ICHD(p))
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
-                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 1
+                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
             }
         for _ in range(g.prevalent_PD):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'PD')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
-                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 1
+                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
             }
         for _ in range(g.prevalent_HHD):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'HHD')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
-                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 1
+                'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
             }
         for _ in range(g.prevalent_LTx):
             self.patient_counter += 1
@@ -196,7 +196,7 @@ class Model:
                 'Time in dialysis station': 0,
                 'No of Sessions': 0,
                 'Exit Age': p.age,
-                'Year': 1
+                'Year': 0
             }
 
         for _ in range(g.prevalent_CTx):
@@ -211,12 +211,12 @@ class Model:
                 'Time in dialysis station': 0,
                 'No of Sessions': 0,
                 'Exit Age': p.age,
-                'Year': 1
+                'Year': 0
             }
 
     # ---------------- Arrival Generators ----------------
     def generator_ICHD_arrivals(self):  
-        year = 1 
+        year = 0 
         while self.env.now < g.sim_duration_days: 
             self.patient_counter += 1 
             p = Patient(self.patient_counter, 'ICHD')
@@ -255,10 +255,10 @@ class Model:
             self.env.process(self.activity_generator_ICHD(p))
             interarrival = g.interarrival_days("ICHD", year)
             yield self.env.timeout(random.expovariate(1.0 / interarrival))
-            year = int(self.env.now / 365) + 1 
+            year = int(self.env.now / 365) 
     
     def generator_CTx_arrivals(self):
-        year = 1
+        year = 0
         while self.env.now < g.sim_duration_days:
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'Non-pre-emptive Transplant')
@@ -275,10 +275,10 @@ class Model:
                 break
                       
             yield self.env.timeout(random.expovariate(1.0 / interarrival))
-            year = int(self.env.now / 365) + 1
+            year = int(self.env.now / 365)
 
     def generator_PD_arrivals(self):
-        year = 1
+        year = 0
         while self.env.now < g.sim_duration_days: 
             interarrival = g.interarrival_days("PD", year) 
             if not np.isfinite(interarrival) or interarrival <= 0: 
@@ -290,10 +290,10 @@ class Model:
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions': 0,'Exit Age': p.age,'Year': year
             }
             yield self.env.timeout(random.expovariate(1.0 / interarrival)) 
-            year = int(self.env.now / 365) + 1 
+            year = int(self.env.now / 365)  
 
     def generator_HHD_arrivals(self):
-        year = 1
+        year = 0
         while self.env.now < g.sim_duration_days:
             interarrival = g.interarrival_days("HHD", year)
             if not np.isfinite(interarrival) or interarrival <= 0:
@@ -305,10 +305,10 @@ class Model:
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions': 0,'Exit Age': p.age,'Year': year
             }
             yield self.env.timeout(random.expovariate(1.0 / interarrival))
-            year = int(self.env.now / 365) + 1
+            year = int(self.env.now / 365) 
 
     def generator_LTx_arrivals(self):
-        year = 1
+        year = 0
         while self.env.now < g.sim_duration_days:
             interarrival = g.interarrival_days("Pre-emptive Transplant", year)
             if not np.isfinite(interarrival) or interarrival <= 0:
@@ -321,7 +321,7 @@ class Model:
                  'Exit Age': p.age,'Year': year
             }
             yield self.env.timeout(random.expovariate(1.0 / interarrival))
-            year = int(self.env.now / 365) + 1
+            year = int(self.env.now / 365) 
         
     # Usage count of stations
     def station_increment(self):
