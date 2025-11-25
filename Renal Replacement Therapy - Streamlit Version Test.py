@@ -618,9 +618,128 @@ with st.sidebar.expander("Maximum Years on Dialysis", expanded=False):
         value=st.session_state.params["max_24yr"]/52/3,
         step=0.5
     ) 
-    g.max_24yr_sessions = Max_24yr*52*3   
-    st.session_state.params["max_24yr"] = g.max_24yr_sessions
-    
+
+    max_29yr = st.number_input(
+        "25-29 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_29yr"]/52/3,
+        step=0.5
+    ) 
+
+    max_34yr = st.number_input(
+        "30-34 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_34yr"]/52/3,
+        step=0.5
+    ) 
+
+    max_39yr = st.number_input(
+        "35-39 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_39yr"]/52/3,
+        step=0.5
+    ) 
+    max_44yr = st.number_input(
+        "40-44 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_44yr"]/52/3,
+        step=0.5
+    ) 
+
+    max_49yr = st.number_input(
+        "45-49 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_49yr"]/52/3,
+        step=0.5
+    )
+
+    max_54yr = st.number_input(
+        "50-54 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_54yr"]/52/3,
+        step=0.5
+    )
+
+    max_59yr = st.number_input(
+        "55-59 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_59yr"]/52/3,
+        step=0.5
+    )
+
+    max_64yr = st.number_input(
+        "60-64 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_64yr"]/52/3,
+        step=0.5
+    )
+
+    max_69yr = st.number_input(
+        "65-69 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_69yr"]/52/3,
+        step=0.5
+    )
+
+    max_74yr = st.number_input(
+        "70-74 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_74yr"]/52/3,
+        step=0.5
+    )
+
+    max_79yr = st.number_input(
+        "75-79 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_79yr"]/52/3,
+        step=0.5
+    )
+
+    max_80yr = st.number_input(
+        "80+ year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_80yr"]/52/3,
+        step=0.5
+    )
+
+    max_NPre = st.number_input(
+        "Non-Pre-Emptive Tx", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_NPre"]/52/3,
+        step=0.5
+    )
+    g.max_24yr_sessions = Max_24yr*52*3  
+    g.max_29yr_sessions = max_29yr*52*3
+    g.max_34yr_sessions = max_34yr*52*3
+    g.max_39yr_sessions = max_39yr*52*3
+    g.max_44yr_sessions = max_44yr*52*3
+    g.max_49yr_sessions = max_49yr*52*3
+    g.max_54yr_sessions = max_54yr*52*3
+    g.max_59yr_sessions = max_59yr*52*3
+    g.max_64yr_sessions = max_64yr*52*3
+    g.max_69yr_sessions = max_69yr*52*3
+    g.max_74yr_sessions = max_74yr*52*3
+    g.max_79yr_sessions = max_79yr*52*3
+    g.max_80yr_sessions = max_80yr*52*3
+    g.max_CTx_sessions = max_NPre*52*3
+     
+    st.session_state.params.update({
+        "max_24yr": g.max_24yr_sessions,
+        "max_29yr": g.max_29yr_sessions,
+        "max_34yr": g.max_34yr_sessions,
+        "max_39yr": g.max_39yr_sessions,
+        "max_44yr": g.max_44yr_sessions,
+        "max_49yr": g.max_49yr_sessions,
+        "max_54yr": g.max_54yr_sessions,
+        "max_59yr": g.max_59yr_sessions,
+        "max_64yr": g.max_64yr_sessions,
+        "max_69yr": g.max_69yr_sessions,
+        "max_74yr": g.max_74yr_sessions,
+        "max_79yr": g.max_79yr_sessions,
+        "max_80yr": g.max_80yr_sessions,
+        "max_NPre": g.max_CTx_sessions
+    })
+
 # Dialysis Unit Setup
 with st.sidebar.expander("Dialysis Unit Setup", expanded=False):
     g.number_of_stations = st.number_input(
@@ -854,4 +973,3 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
-
