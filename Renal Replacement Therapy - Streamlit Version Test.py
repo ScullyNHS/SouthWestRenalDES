@@ -60,7 +60,8 @@ class g:
     max_79yr_sessions = 52*3*2
     max_80yr_sessions = 52*3*1
     max_CTx_sessions = 78
-    
+    max_HHD_duration = 608
+
     # New patients per year
 
     new_KRT_patients = 284
@@ -180,6 +181,7 @@ class Model:
         for _ in range(g.prevalent_HHD):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'HHD')
+            self.env.process(self.activity_generator_HHD(p))
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
@@ -295,15 +297,16 @@ class Model:
     def generator_HHD_arrivals(self):
         year = 0
         while self.env.now < g.sim_duration_days:
-            interarrival = g.interarrival_days("HHD", year)
-            if not np.isfinite(interarrival) or interarrival <= 0:
-                break
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'HHD')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions': 0,'Exit Age': p.age,'Year': year
             }
+            self.env.process(self.activity_generator_HHD(p)) # Start patient activity process
+            interarrival = g.interarrival_days("HHD", year)
+            if not np.isfinite(interarrival) or interarrival <= 0:
+                break
             yield self.env.timeout(random.expovariate(1.0 / interarrival))
             year = int(self.env.now / 365) 
 
@@ -412,6 +415,24 @@ class Model:
         'Q time station': patient.q_time_station,
         'Total dialysis time': total_dialysis_time,
         'No of Sessions': session_count,
+        'Exit Age': patient.age,
+        'Year': int(self.env.now / 365)
+        }   
+
+    # Home Haemodialysis
+
+    def activity_generator_HHD(self, patient):
+        yield self.env.timeout(g.max_HHD_duration)
+        patient.age += g.max_HHD_duration * g.age_increment_per_day
+
+        self.results_df.loc[len(self.results_df)] = {
+        'Run Number': run_number,
+        'Patient Id': patient.id,
+        'Patient Type': patient.type,
+        'Entry Age': patient.entry_age,
+        'Q time station': patient.q_time_station,
+        'Total dialysis time': 0,
+        'No of Sessions': g.max_HHD_duration,
         'Exit Age': patient.age,
         'Year': int(self.env.now / 365)
         }   
