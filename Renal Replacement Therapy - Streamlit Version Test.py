@@ -371,7 +371,7 @@ class Model:
         'Total dialysis time': total_dialysis_time,
         'No of Sessions': session_count,
         'Exit Age': patient.age,
-        'Year': int(self.env.now / 365)+1
+        'Year': int(self.env.now / 365)
         }
 
     def activity_generator_CTx(self, patient):
@@ -413,7 +413,7 @@ class Model:
         'Total dialysis time': total_dialysis_time,
         'No of Sessions': session_count,
         'Exit Age': patient.age,
-        'Year': int(self.env.now / 365)+1
+        'Year': int(self.env.now / 365)
         }   
 
     # ---------------- Queue Monitoring ----------------
