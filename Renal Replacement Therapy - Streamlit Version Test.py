@@ -498,7 +498,7 @@ class Model:
 st.title("Renal Unit Simulation Model")
 
 st.write("This app allows you to test scenarios that might impact the demand and capacity of renal units and centres. This can be done by changing the parameters to the left and clicking Run Simulation below.")
-st.image("flow 2.drawio.png")
+st.image("flow 3.png")
 
 # -------------------------------
 # Sidebar with grouped parameters
@@ -1022,3 +1022,4 @@ if st.button("Run Simulation"):
     )
 
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
