@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import time
 import warnings
 import openpyxl 
+import plotly.express as px
 import streamlit as st
 from io import BytesIO
 
@@ -18,17 +19,17 @@ class g:
 
     # ---------------- Baseline Data ----------------
     Unit = 'EXETER'
-    prevalent_ICHD = 511
-    prevalent_PD   = 79
-    prevalent_HHD  = 16
+    prevalent_ICHD = 489
+    prevalent_PD   = 71
+    prevalent_HHD  = 22
     prevalent_LTx   = 195
     prevalent_CTx   = 391
 
-    proportion_ICHD = 0.428691275
-    proportion_PD = 0.066275168
-    proportion_HHD = 0.013422819
-    proportion_LTx = 0.163590604
-    proportion_CTx = 0.328020134
+    proportion_ICHD = 0.665413533834586
+    proportion_PD = 0.0633802816901408
+    proportion_HHD = 0.0211267605633803
+    proportion_LTx = 0.151408450704225
+    proportion_CTx = 0.140845070422535
 
     number_of_stations = 113
 
@@ -59,10 +60,12 @@ class g:
     max_79yr_sessions = 52*3*2
     max_80yr_sessions = 52*3*1
     max_CTx_sessions = 78
-    
+    max_HHD_duration = 608
+    max_PD_duration = 489
+
     # New patients per year
 
-    new_KRT_patients = 210
+    new_KRT_patients = 284
 
     # ----------- Growth-driven arrivals ------------
     @staticmethod
@@ -73,9 +76,9 @@ class g:
             base = g.new_KRT_patients*g.proportion_PD
         elif modality == "HHD":
             base = g.new_KRT_patients*g.proportion_HHD
-        elif modality == "Live Transplant":
+        elif modality == "Pre-emptive Transplant":
             base = g.new_KRT_patients*g.proportion_LTx
-        elif modality == "Cadaver Transplant":
+        elif modality == "Non-pre-emptive Transplant":
             base = g.new_KRT_patients*g.proportion_CTx
         else:
             return 0
@@ -172,6 +175,7 @@ class Model:
         for _ in range(g.prevalent_PD):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'PD')
+            self.env.process(self.activity_generator_PD(p))
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
@@ -179,13 +183,14 @@ class Model:
         for _ in range(g.prevalent_HHD):
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'HHD')
+            self.env.process(self.activity_generator_HHD(p))
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions':0,'Exit Age': p.age,'Year': 0
             }
         for _ in range(g.prevalent_LTx):
             self.patient_counter += 1
-            p = Patient(self.patient_counter, 'Live Transplant')
+            p = Patient(self.patient_counter, 'Pre-emptive Transplant')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,
                 'Patient Id': p.id,
@@ -200,7 +205,7 @@ class Model:
 
         for _ in range(g.prevalent_CTx):
             self.patient_counter += 1
-            p = Patient(self.patient_counter, 'Cadaver Transplant')
+            p = Patient(self.patient_counter, 'Non-pre-emptive Transplant')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,
                 'Patient Id': p.id,
@@ -215,7 +220,7 @@ class Model:
 
     # ---------------- Arrival Generators ----------------
     def generator_ICHD_arrivals(self):  
-        year = 1 
+        year = 0 
         while self.env.now < g.sim_duration_days: 
             self.patient_counter += 1 
             p = Patient(self.patient_counter, 'ICHD')
@@ -254,13 +259,13 @@ class Model:
             self.env.process(self.activity_generator_ICHD(p))
             interarrival = g.interarrival_days("ICHD", year)
             yield self.env.timeout(random.expovariate(1.0 / interarrival))
-            year = int(self.env.now / 365) + 1 
+            year = int(self.env.now / 365) 
     
     def generator_CTx_arrivals(self):
-        year = 1
+        year = 0
         while self.env.now < g.sim_duration_days:
             self.patient_counter += 1
-            p = Patient(self.patient_counter, 'Cadaver Transplant')
+            p = Patient(self.patient_counter, 'Non-pre-emptive Transplant')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0, 'No of Sessions': 0, 
@@ -269,58 +274,60 @@ class Model:
             ## Cadaver patients require ICHD before their Tx
             ## This generator and activity account for this            
             self.env.process(self.activity_generator_CTx(p)) # Start patient activity process
-            interarrival = g.interarrival_days("Cadaver Transplant", year)
+            interarrival = g.interarrival_days("Non-pre-emptive Transplant", year)
             if not np.isfinite(interarrival) or interarrival <= 0:
                 break
                       
             yield self.env.timeout(random.expovariate(1.0 / interarrival))
-            year = int(self.env.now / 365) + 1
+            year = int(self.env.now / 365)
 
     def generator_PD_arrivals(self):
-        year = 1
+        year = 0
         while self.env.now < g.sim_duration_days: 
-            interarrival = g.interarrival_days("PD", year) 
-            if not np.isfinite(interarrival) or interarrival <= 0: 
-                break 
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'PD')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions': 0,'Exit Age': p.age,'Year': year
             }
+            self.env.process(self.activity_generator_PD(p)) # Start patient activity process
+            interarrival = g.interarrival_days("PD", year) 
+            if not np.isfinite(interarrival) or interarrival <= 0: 
+                break 
             yield self.env.timeout(random.expovariate(1.0 / interarrival)) 
-            year = int(self.env.now / 365) + 1 
+            year = int(self.env.now / 365)  
 
     def generator_HHD_arrivals(self):
-        year = 1
+        year = 0
         while self.env.now < g.sim_duration_days:
-            interarrival = g.interarrival_days("HHD", year)
-            if not np.isfinite(interarrival) or interarrival <= 0:
-                break
             self.patient_counter += 1
             p = Patient(self.patient_counter, 'HHD')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0,'No of Sessions': 0,'Exit Age': p.age,'Year': year
             }
+            self.env.process(self.activity_generator_HHD(p)) # Start patient activity process
+            interarrival = g.interarrival_days("HHD", year)
+            if not np.isfinite(interarrival) or interarrival <= 0:
+                break
             yield self.env.timeout(random.expovariate(1.0 / interarrival))
-            year = int(self.env.now / 365) + 1
+            year = int(self.env.now / 365) 
 
     def generator_LTx_arrivals(self):
-        year = 1
+        year = 0
         while self.env.now < g.sim_duration_days:
-            interarrival = g.interarrival_days("Live Transplant", year)
+            interarrival = g.interarrival_days("Pre-emptive Transplant", year)
             if not np.isfinite(interarrival) or interarrival <= 0:
                 break
             self.patient_counter += 1
-            p = Patient(self.patient_counter, 'Live Transplant')
+            p = Patient(self.patient_counter, 'Pre-emptive Transplant')
             self.results_df.loc[len(self.results_df)] = {
                 'Run Number': run_number,'Patient Id': p.id,'Patient Type': p.type,'Entry Age': p.entry_age,
                 'Q time station': 0,'Time in dialysis station': 0, 'No of Sessions': 0,
                  'Exit Age': p.age,'Year': year
             }
             yield self.env.timeout(random.expovariate(1.0 / interarrival))
-            year = int(self.env.now / 365) + 1
+            year = int(self.env.now / 365) 
         
     # Usage count of stations
     def station_increment(self):
@@ -415,6 +422,43 @@ class Model:
         'Year': int(self.env.now / 365)
         }   
 
+    # Home Haemodialysis
+
+    def activity_generator_HHD(self, patient):
+        yield self.env.timeout(g.max_HHD_duration)
+        patient.age += g.max_HHD_duration * g.age_increment_per_day
+
+        self.results_df.loc[len(self.results_df)] = {
+        'Run Number': run_number,
+        'Patient Id': patient.id,
+        'Patient Type': patient.type,
+        'Entry Age': patient.entry_age,
+        'Q time station': patient.q_time_station,
+        'Total dialysis time': 0,
+        'No of Sessions': g.max_HHD_duration,
+        'Exit Age': patient.age,
+        'Year': int(self.env.now / 365)
+        }   
+
+    # PD
+
+    def activity_generator_PD(self, patient):
+        yield self.env.timeout(g.max_PD_duration)
+        patient.age += g.max_PD_duration * g.age_increment_per_day
+
+        self.results_df.loc[len(self.results_df)] = {
+        'Run Number': run_number,
+        'Patient Id': patient.id,
+        'Patient Type': patient.type,
+        'Entry Age': patient.entry_age,
+        'Q time station': patient.q_time_station,
+        'Total dialysis time': 0,
+        'No of Sessions': g.max_PD_duration,
+        'Exit Age': patient.age,
+        'Year': int(self.env.now / 365)
+        }   
+
+
     # ---------------- Queue Monitoring ----------------
     def monitor_queue(self, interval=30):
         while True:
@@ -425,11 +469,11 @@ class Model:
     #---------------- Station Monitoring ------------
     def yearly_station_snapshot(self):
         for year in range(1, g.sim_duration_years +1):
-            yield self.env.timeout(g.year_duration)
             self.sessions_per_year.loc[len(self.sessions_per_year)] = {
             'Year':year, 
             'Session Count':self.station_usage_count}
             self.reset_station_increment()
+            yield self.env.timeout(g.year_duration)
 
     # ---------------- Run & Results ----------------
     def calculate_run_results(self):
@@ -440,8 +484,8 @@ class Model:
         self.env.process(self.generator_ICHD_arrivals()) # Start the process that adds new ICHD patients to the system
         self.env.process(self.generator_PD_arrivals()) # Start the process that adds new PD patients to the system
         self.env.process(self.generator_HHD_arrivals()) # Start the process that adds new HHD patients to the system
-        self.env.process(self.generator_LTx_arrivals()) # Start the process that adds new Live Transplant patients to the system
-        self.env.process(self.generator_CTx_arrivals()) # Start the process that adds new Cadaver Transplant patients to the system
+        self.env.process(self.generator_LTx_arrivals()) # Start the process that adds new Pre-emptive Transplant patients to the system
+        self.env.process(self.generator_CTx_arrivals()) # Start the process that adds new Non-pre-emptive Transplant patients to the system
         self.env.process(self.monitor_queue()) # Start queue monitoring
         self.env.process(self.yearly_station_snapshot()) # Start station snapshot monitoring
 
@@ -454,7 +498,7 @@ class Model:
 st.title("Renal Unit Simulation Model")
 
 st.write("This app allows you to test scenarios that might impact the demand and capacity of renal units and centres. This can be done by changing the parameters to the left and clicking Run Simulation below.")
-st.image("flow 2.drawio.png")
+st.image("flow 3.png")
 
 # -------------------------------
 # Sidebar with grouped parameters
@@ -478,7 +522,21 @@ def get_g_defaults():
         "mean_consult_time": g.mean_consult_time,
         "min_age": g.min_age,
         "max_age": g.max_age,
-        "num_runs": 5
+        "num_runs": 5,
+        "max_24yr": g.max_24yr_sessions,
+        "max_29yr": g.max_29yr_sessions,
+        "max_34yr": g.max_34yr_sessions,
+        "max_39yr": g.max_39yr_sessions,
+        "max_44yr": g.max_44yr_sessions,
+        "max_49yr": g.max_49yr_sessions,
+        "max_54yr": g.max_54yr_sessions,
+        "max_59yr": g.max_59yr_sessions,
+        "max_64yr": g.max_64yr_sessions,
+        "max_69yr": g.max_69yr_sessions,
+        "max_74yr": g.max_74yr_sessions,
+        "max_79yr": g.max_79yr_sessions,
+        "max_80yr": g.max_80yr_sessions,
+        "max_NPre": g.max_CTx_sessions
     }
 
 # Initialize session state defaults if not set
@@ -501,12 +559,13 @@ with st.sidebar.expander("Growth & Duration", expanded=True):
     g.sim_duration_days = 365 * sim_years
     st.session_state.params["sim_duration_days"] = g.sim_duration_days
 
-    g.annual_growth_rate = st.number_input(
-        "Annual Growth in Incidence Rate",
-        min_value=0.0, max_value=0.1,
-        value=st.session_state.params["annual_growth_rate"],
-        step=0.005
+    per_growth_rate = st.number_input(
+        "Annual Percentage Growth in Incidence",
+        min_value=0.0, max_value=10.0,
+        value=st.session_state.params["annual_growth_rate"]*100,
+        step=0.5
     )
+    g.annual_growth_rate = per_growth_rate / 100
     st.session_state.params["annual_growth_rate"] = g.annual_growth_rate
 
 # Patient Prevalence
@@ -546,36 +605,45 @@ with st.sidebar.expander("Patient Incidence", expanded=False):
         "KRT patient incidence per year", 0, 10000,
         value=st.session_state.params["new_KRT_patients"]
     )
-    g.proportion_ICHD = st.number_input(
-        "Proportion ICHD", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_ICHD"],
-        step=0.005
+    per_ICHD = st.number_input(
+        "Proportion ICHD (%)", 
+        min_value=0.0, max_value=100.0,
+        value=st.session_state.params["proportion_ICHD"]*100,
+        step=0.5
     )
-    g.proportion_ICHD = st.number_input(
-        "Proportion PD", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_PD"],
-        step=0.005
+    
+    per_PD = st.number_input(
+        "Proportion PD (%)", 
+        min_value=0.0, max_value=100.0,
+        value=st.session_state.params["proportion_PD"]*100,
+        step=0.5
     )
-    g.proportion_ICHD = st.number_input(
-        "Proportion HHD", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_HHD"],
-        step=0.005
+    
+    per_HHD = st.number_input(
+        "Proportion HHD (%)", 
+        min_value=0.0, max_value=100.0,
+        value=st.session_state.params["proportion_HHD"]*100,
+        step=0.5
     )
-    g.proportion_ICHD = st.number_input(
-        "Proportion PTx", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_LTx"],
-        step=0.005
+    
+    per_PTx = st.number_input(
+        "Proportion PTx (%)", 
+        min_value=0.0, max_value=100.0,
+        value=st.session_state.params["proportion_LTx"]*100,
+        step=0.5
     )
-    g.proportion_ICHD = st.number_input(
-        "Proportion NPTx", 
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.params["proportion_CTx"],
-        step=0.005
+    
+    per_NPTx = st.number_input(
+        "Proportion NPTx (%)", 
+        min_value=0.0, max_value=100.0,
+        value=st.session_state.params["proportion_CTx"]*100,
+        step=0.5
     )
+    g.proportion_HHD = per_HHD / 100
+    g.proportion_PD = per_PD / 100
+    g.proportion_ICHD = per_ICHD / 100
+    g.proportion_LTx = per_PTx / 100
+    g.proportion_CTx = per_NPTx / 100
     st.session_state.params.update({
         "new_KRT_patients": g.new_KRT_patients,
         "proportion_ICHD": g.proportion_ICHD,
@@ -583,6 +651,136 @@ with st.sidebar.expander("Patient Incidence", expanded=False):
         "proportion_HHD": g.proportion_HHD,
         "proportion_LTx": g.proportion_LTx,
         "proportion_CTx": g.proportion_CTx,
+    })
+
+# Maximum Sessions by age
+with st.sidebar.expander("Maximum Years on In-Centre Dialysis", expanded=False):
+    Max_24yr = st.number_input(
+        "18-24 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_24yr"]/52/3,
+        step=0.5
+    ) 
+
+    max_29yr = st.number_input(
+        "25-29 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_29yr"]/52/3,
+        step=0.5
+    ) 
+
+    max_34yr = st.number_input(
+        "30-34 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_34yr"]/52/3,
+        step=0.5
+    ) 
+
+    max_39yr = st.number_input(
+        "35-39 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_39yr"]/52/3,
+        step=0.5
+    ) 
+    max_44yr = st.number_input(
+        "40-44 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_44yr"]/52/3,
+        step=0.5
+    ) 
+
+    max_49yr = st.number_input(
+        "45-49 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_49yr"]/52/3,
+        step=0.5
+    )
+
+    max_54yr = st.number_input(
+        "50-54 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_54yr"]/52/3,
+        step=0.5
+    )
+
+    max_59yr = st.number_input(
+        "55-59 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_59yr"]/52/3,
+        step=0.5
+    )
+
+    max_64yr = st.number_input(
+        "60-64 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_64yr"]/52/3,
+        step=0.5
+    )
+
+    max_69yr = st.number_input(
+        "65-69 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_69yr"]/52/3,
+        step=0.5
+    )
+
+    max_74yr = st.number_input(
+        "70-74 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_74yr"]/52/3,
+        step=0.5
+    )
+
+    max_79yr = st.number_input(
+        "75-79 year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_79yr"]/52/3,
+        step=0.5
+    )
+
+    max_80yr = st.number_input(
+        "80+ year old", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_80yr"]/52/3,
+        step=0.5
+    )
+
+    max_NPre = st.number_input(
+        "Non-Pre-Emptive Tx", 
+        min_value=0.0, max_value=30.0,
+        value=st.session_state.params["max_NPre"]/52/3,
+        step=0.5
+    )
+    g.max_24yr_sessions = Max_24yr*52*3  
+    g.max_29yr_sessions = max_29yr*52*3
+    g.max_34yr_sessions = max_34yr*52*3
+    g.max_39yr_sessions = max_39yr*52*3
+    g.max_44yr_sessions = max_44yr*52*3
+    g.max_49yr_sessions = max_49yr*52*3
+    g.max_54yr_sessions = max_54yr*52*3
+    g.max_59yr_sessions = max_59yr*52*3
+    g.max_64yr_sessions = max_64yr*52*3
+    g.max_69yr_sessions = max_69yr*52*3
+    g.max_74yr_sessions = max_74yr*52*3
+    g.max_79yr_sessions = max_79yr*52*3
+    g.max_80yr_sessions = max_80yr*52*3
+    g.max_CTx_sessions = max_NPre*52*3
+     
+    st.session_state.params.update({
+        "max_24yr": g.max_24yr_sessions,
+        "max_29yr": g.max_29yr_sessions,
+        "max_34yr": g.max_34yr_sessions,
+        "max_39yr": g.max_39yr_sessions,
+        "max_44yr": g.max_44yr_sessions,
+        "max_49yr": g.max_49yr_sessions,
+        "max_54yr": g.max_54yr_sessions,
+        "max_59yr": g.max_59yr_sessions,
+        "max_64yr": g.max_64yr_sessions,
+        "max_69yr": g.max_69yr_sessions,
+        "max_74yr": g.max_74yr_sessions,
+        "max_79yr": g.max_79yr_sessions,
+        "max_80yr": g.max_80yr_sessions,
+        "max_NPre": g.max_CTx_sessions
     })
 
 # Dialysis Unit Setup
@@ -672,36 +870,65 @@ if st.button("Run Simulation"):
 
     # Sum and average
     avg_volume_table = new_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().unstack(fill_value=0)
+    avg_volume_table_2 = new_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().reset_index(name='count')
+    avg_volume_table_2 = avg_volume_table_2[avg_volume_table_2['Year']!=0]
 
     st.write("### Average Patient Incidence by Year and Modality")
-    st.dataframe(avg_volume_table)
+    #st.dataframe(avg_volume_table_2)
 
-    # Download Excel
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        avg_volume_table.to_excel(writer, sheet_name="Avg Patients by Year")
-    st.download_button(
-        label="Download results as Excel",
-        data=output.getvalue(),
-        file_name="Renal_patient_incidence.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    fig1 = px.line(
+        avg_volume_table_2,
+        x="Year",
+        y="count",
+        facet_col = "Patient Type",
+        facet_col_wrap = 2,
+        labels={"count": "Incidence", "index": "Year", "variable": "Patient Type"},
+        title="Average Incidence By Year"
     )
+
+    fig1.update_yaxes(matches=None)
+
+    st.plotly_chart(fig1, use_container_width=True)
+
+     # Download Excel
+    # output = BytesIO()
+    # with pd.ExcelWriter(output, engine="openpyxl") as writer:
+    #     avg_volume_table.to_excel(writer, sheet_name="Avg Patients by Year")
+    # st.download_button(
+    #     label="Download results as Excel",
+    #     data=output.getvalue(),
+    #     file_name="Renal_patient_incidence.xlsx",
+    #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    # )
+
+    # ## Sessions
 
     avg_sessions_table = sum(all_sessions_list) / len(all_sessions_list)
     avg_sessions_table = avg_sessions_table.round(2)  
     st.write("### Average Number of Sessions by Year")
-    st.dataframe(avg_sessions_table)
+    #st.dataframe(avg_sessions_table)
+
+    # Line chart
+    fig2 = px.line(
+        avg_sessions_table,
+        x="Year",
+        y="Session Count",
+        labels={"value": "Average No. of Sessions", "index": "Year"},
+        title="Average No. of Sessions By Year"
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
 
     # Download Excel
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        avg_sessions_table.to_excel(writer, sheet_name="Avg Sessions by Year")
-    st.download_button(
-        label="Download results as Excel",
-        data=output.getvalue(),
-        file_name="Renal_session_volumes.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    # output = BytesIO()
+    # with pd.ExcelWriter(output, engine="openpyxl") as writer:
+    #     avg_sessions_table.to_excel(writer, sheet_name="Avg Sessions by Year")
+    # st.download_button(
+    #     label="Download results as Excel",
+    #     data=output.getvalue(),
+    #     file_name="Renal_session_volumes.xlsx",
+    #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    # )
 
     # ## Exit patients output
 
@@ -710,19 +937,90 @@ if st.button("Run Simulation"):
 
     # Sum and average
     avg_exit_table = exit_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().unstack(fill_value=0)
-    st.write("### Average Number of Exits by Year")
+    avg_exit_table_2 = exit_patients_df.groupby(['Year', 'Patient Type'])['count'].mean().reset_index(name='count')
+
+    st.write("### Average Number of Patients Completing Dialysis by Year")
     st.dataframe(avg_exit_table)
 
+    fig3 = px.line(
+        avg_exit_table_2,
+        x="Year",
+        y="count",
+        facet_col = "Patient Type",
+        facet_col_wrap = 2,
+        labels={"index": "Year", "variable": "Patient Type"},
+        title="Average Dialysis Completions By Year"
+    )
+
+    fig3.update_yaxes(matches=None)
+
+    st.plotly_chart(fig3, use_container_width=True)
+
     # Download Excel
+    # output = BytesIO()
+    # with pd.ExcelWriter(output, engine="openpyxl") as writer:
+    #     avg_exit_table.to_excel(writer, sheet_name="Avg Patients by Year")
+    # st.download_button(
+    #     label="Download results as Excel",
+    #     data=output.getvalue(),
+    #     file_name="Renal_exit_volumes.xlsx",
+    #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    # )
+
+
+    # ## Pt Prevalence output
+
+    prevalence_df = new_patients_df.merge(
+        exit_patients_df,
+        on=["Run Number", "Year", "Patient Type"],
+        how="left",
+        suffixes=("_new", "_exit")  # renames the Count columns
+    )
+
+    prevalence_df_ichd = prevalence_df[ prevalence_df["Patient Type"] == "ICHD" ]
+
+    # Calculate the difference between new and exit patients and prevalence
+    prevalence_df_ichd["count_exit"] = prevalence_df_ichd["count_exit"].fillna(0)
+    prevalence_df_ichd["Count_diff"] = prevalence_df_ichd["count_new"] - prevalence_df_ichd["count_exit"]
+    prevalence_df_ichd["Count_Prev"] = (
+    prevalence_df_ichd.groupby("Run Number")["Count_diff"].cumsum()
+    )
+    
+    
+    # Sum and average
+    avg_prev_table = prevalence_df_ichd.groupby(['Year', 'Patient Type'])['Count_Prev'].mean().unstack(fill_value=0)
+    st.write("### Average Prevalence by Year")
+    #st.dataframe(avg_prev_table)
+
+    # Line chart
+    fig = px.line(
+        avg_prev_table,
+        labels={"value": "Average Prevalence", "index": "Year", "variable": "Patient Type"},
+        title="Average Prevalence By Year"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # All results tab
+
+    all_results_df = pd.DataFrame(all_results_list, columns = ['Run Number', 'Patient Id', 'Patient Type','Entry Age','Q time station',
+       'Total dialysis time','No of Sessions','Exit Age','Year'])
+
+     # Download Excel
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        avg_exit_table.to_excel(writer, sheet_name="Avg Patients by Year")
+        avg_prev_table.to_excel(writer, sheet_name="Avg Prevalence by Year")
+        avg_volume_table.to_excel(writer, sheet_name="Avg Incidence by Year")
+        avg_sessions_table.to_excel(writer, sheet_name="Avg Sessions by Year")
+        avg_exit_table.to_excel(writer, sheet_name="Avg HD Comp by Year")
+        all_results_df.to_excel(writer, sheet_name="All Results")
     st.download_button(
         label="Download results as Excel",
         data=output.getvalue(),
-        file_name="Renal_exit_volumes.xlsx",
+        file_name="Renal_Unit_Simulation_Results.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-
     st.success(f"Simulation finished in {time.time() - start_time:.2f} seconds")
+
+
